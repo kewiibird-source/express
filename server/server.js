@@ -27,7 +27,7 @@ async function initializeDatabase() {
 initializeDatabase();
 
 app.get('/', (req, res) => {
-  res.send('Hello World')
+  res.send('Hello World aa')
 })
 
 app.get('/test', (req, res) => {
@@ -55,6 +55,48 @@ app.get('/stu/list', async (req, res) => {
     res.json({
         result : "success",
         list : rows
+    });
+  } catch (error) {
+    console.error('Error executing query', error);
+    res.status(500).send('Error executing query');
+  }
+});
+
+app.get('/stu/remove', async (req, res) => {
+  // console.log(req.query)
+  const {stuNo} = req.query;
+  console.log(stuNo);
+
+  try {
+    const result = await connection.execute(`DELETE FROM STUDENT WHERE STU_NO = ${stuNo}`);
+    console.log(result);
+    await connection.commit();
+
+    res.json({
+        result : "success",
+    });
+  } catch (error) {
+    console.error('Error executing query', error);
+    res.status(500).send('Error executing query');
+  }
+});
+
+app.get('/stu/edit', async (req, res) => {
+  // console.log(req.query)
+  const {stuNo} = req.query;
+  const dept = "소프트웨어";
+
+  try {
+    const result = await connection.execute(
+      `UPDATE STUDENT SET STU_DEPT = :dept WHERE STU_NO = :stuNo`,
+      [dept, stuNo],
+      {autoCommit : true}
+    );
+    console.log(result);
+    await connection.commit();
+
+    res.json({
+        result : "success",
     });
   } catch (error) {
     console.error('Error executing query', error);
