@@ -24,18 +24,18 @@
 <body>
     <div id="app">
         <!-- html 코드는 id가 app인 태그 안에서 작업 -->
-         <div>
-            <table>
-                <tr>
-                    <td>학번</td>
-                    <td>이름</td>
-                    <td>학과</td>
-                    <td>삭제</td>
-                </tr>
-                {{self.info}}
-            </table>
+        <div>
+            <div>
+                id : <input type="text" v-model="userId">
+            </div>
+            <div>
+                pw : <input type="password" v-model="pwd">
+            </div>
+            <div>
+                name : <input type="text" v-model="userName">
+            </div>
+            <button @click="fnJoin">회원가입</button>
         </div>
-        
     </div>
 </body>
 </html>
@@ -45,44 +45,37 @@
         data() {
             return {
                 // 변수 - (key : value)
-                info : {
-                    stuNo : "",
-                    stuName : "",
-                    stuDept : "",
-                    stuGrade : ""
-                }
+                userId : "",
+                pwd : "",
+                userName : ""
             };
         },
         methods: {
-            // 함수(메소드) - (key : function()
-            fnList: function () {
+            // 함수(메소드) - (key : function())
+            fnJoin: function () {
                 let self = this;
-                // fetch의 기본 method는 get
-                // 서버의 get함수 호출
-                fetch("http://localhost:3000/student")
-                    .then(res => res.json())
-                    .then(data => {
-                        self.list = data.list;
-                        
+                fetch("http://localhost:3000/user/join",{
+                    method : "POST",
+                    headers : {
+                        "Content-type" : "application/json"
+                    },
+                    body : JSON.stringify({
+                        userId : self.userId,
+                        pwd : self.pwd,
+                        userName : self.userName
                     })
-            },
-            fnGetInfo: function () {
-                let self = this;
-                fetch("http://localhost:3000/student/"+self.info.stuNo)
+                })
                     .then(res => res.json())
                     .then(data => {
-                        console.log(data.info);
-                        self.info = data.info;
-                        
+                        console.log(data);
+                        alert(self.userName + "님 회원가입 완료!");
+                        location.href="login.html";
                     })
             }
         }, // methods
         mounted() {
             // 처음 시작할 때 실행되는 부분
             let self = this;
-            const queryParams = new URLSearchParams(window.location.search);
-            self.info.stuNo = queryParams.get('stuNo') || ''; 
-            self.fnGetInfo();
         }
     });
 

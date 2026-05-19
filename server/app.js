@@ -2,26 +2,24 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const oracledb = require('oracledb');
+const studentRouter = require("./routes/student");
+const db = require("./db");
 
 const app = express();
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
 
 // ejs 설정
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '.')); // .은 경로
 
-const config = {
-  user: 'SYSTEM',
-  password: 'test1234',
-  connectString: 'localhost:1521/xe'
-};
+app.use("/student", studentRouter); 
 
 let connection;
 
 async function startServer() {
   try {
-    connection = await oracledb.getConnection(config);
+    db.init();
     console.log('Successfully connected to Oracle database');
 
     app.listen(3000, () => {
@@ -39,19 +37,34 @@ startServer();
 // RESTful API 적용
 
 // user 로그인 보안상 post 사용
-app.post('/login', async (req, res) => {
+app.post('/user/login', async (req, res) => {
   const { userId, pwd } = req.body;
   try {
+    // 쿼리 결과 result에 담김
     const result = await connection.execute(
       `SELECT * FROM TBL_USER WHERE USERID=:userId AND PWD = :pwd`,
-      [userId, pwd],
+      [userId, pwd], // 입력받은 값 어디에 넣을지
       // result 안에 rows는 키 안에 json형태로 db데이터를 반환
       {outFormat: oracledb.OUT_FORMAT_OBJECT}
     );
+
+    console.log(result.rows); // undefined or []
+    let message = "";
+    let info = {} 
+
+    if(result.rows.length > 0){
+      message = "success";
+      info = {
+        userId : result.rows[0].USERID,
+        userName : result.rows[0].USERNAME
+      }
+    } else {
+      message = "fail";
+    }
     
     res.json({
-        result : "success",
-        list : result.rows
+        message : message,
+        info : info
     });
   } catch (error) {
     console.error('Error executing query', error);
@@ -59,67 +72,23 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// 학생리스트
-app.get('/student', async (req, res) => {
-  const { } = req.query;
-  try {
-    const result = await connection.execute(
-      `SELECT * FROM STUDENT`,
-      [],
-      // result 안에 rows는 키 안에 json형태로 db데이터를 반환
-      {outFormat: oracledb.OUT_FORMAT_OBJECT}
-    );
-    
-    res.json({
-        result : "success",
-        list : result.rows
-    });
-  } catch (error) {
-    console.error('Error executing query', error);
-    res.status(500).send('Error executing query');
-  }
-});
-
-// 학생상세보기
-app.get('/student/:stuNo', async (req, res) => {
-  const { stuNo } = req.params;
-  try {
-    const result = await connection.execute(
-      `
-        SELECT 
-          STU_NO AS "stuNo",
-          STU_NAME AS "stuName",
-          STU_DEPT AS "stuDept",
-          STU_GRADE AS "stuGrade"
-        FROM STUDENT WHERE STU_NO = :stuNo
-      `,
-      [stuNo],
-      {outFormat: oracledb.OUT_FORMAT_OBJECT}
-    );
-    console.log(result)
-    res.json({
-        result : "success",
-        info : result.rows[0]
-    });
-  } catch (error) {
-    console.error('Error executing query', error);
-    res.status(500).send('Error executing query');
-  }
-});
-
-// 학생삭제
-app.delete('/student/:stuNo', async (req, res) => {
-  console.log("DELETE 호출!")
-  console.log(req.params)
-  const { stuNo } = req.params;
+// user 등록
+app.post('/user/join', async (req, res) => {
+  const { userId, pwd, userName } = req.body;
 
   try {
     const result = await connection.execute(
-      `DELETE FROM STUDENT WHERE STU_NO = :stuNo`,
-      [stuNo],
+      `INSERT INTO TBL_USER(USERID, PWD, USERNAME) VALUES(:userId, :pwd, :userName)`,
+      [userId, pwd, userName],
       {autoCommit : true}
     );
+    console.log(result);
+    // { lastRowid: 'AAATEkAABAAAifRAAM', rowsAffected: 1 }
+    if(result.rowsAffected > 0){
 
+    } else {
+
+    }
     res.json({
         result : "success",
     });
@@ -128,57 +97,3 @@ app.delete('/student/:stuNo', async (req, res) => {
     res.status(500).send('Error executing query');
   }
 });
-
-// 학생수정
-app.put('/student/:stuNo', async (req, res) => {
-  const { stuNo } = req.params;
-  const { stuName, stuDept, stuGrade } = req.body;
-
-  try {
-    const result = await connection.execute(
-      `
-        UPDATE STUDENT SET
-          STU_NAME = :stuName,
-          STU_DEPT = :stuDept,
-          STU_GRADE = :stuGrade
-        WHERE STU_NO = :stuNo
-      `,
-      [stuName, stuDept, stuGrade,stuNo],
-      {autoCommit : true}
-    );
-
-    res.json({
-        result : "success",
-    });
-  } catch (error) {
-    console.error('Error executing query', error);
-    res.status(500).send('Error executing query');
-  }
-});
-
-// 학생등록
-app.post('/student', async (req, res) => {
-  console.log("POST 호출!")
-  console.log(req.body)
-  const { stuNo, stuName, stuDept, stuGrade } = req.body;
-
-  try {
-    const result = await connection.execute(
-      `INSERT INTO STUDENT(STU_NO, STU_NAME, STU_DEPT, STU_GRADE) VALUES(:stuNo, :stuName, :stuDept, :stuGrade)`,
-      [stuNo, stuName, stuDept, stuGrade],
-      {autoCommit : true}
-    );
-
-    res.json({
-        result : "success",
-    });
-  } catch (error) {
-    console.error('Error executing query', error);
-    res.status(500).send('Error executing query');
-  }
-});
-
-// 서버 시작
-// app.listen(3000, () => {
-//   console.log('Server is running on port 3000');
-// });

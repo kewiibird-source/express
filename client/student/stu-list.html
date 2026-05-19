@@ -34,17 +34,17 @@
                 </tr>
                 <tr v-for="item in list">
                     <td>
-                        <a href="javascript:;" @click="fnView(item.STU_NO)">{{item.STU_NO}}</a>
+                        <a :href="item.viewUrl">{{item.STU_NO}}</a>
                     </td>
                     <td>
                         <a href="javascript:;" @click="fnEdit(item.STU_NO)">{{item.STU_NAME}}</a>
                     </td>
                     <td>{{item.STU_DEPT}}</td>
-                    <td><button @click="fnRemove(item.STU_NO)">삭제</button></td>                    
+                    <td><button @click="fnRemove(item.STU_NO)">삭제</button></td>
+                    
                 </tr>
             </table>
         </div>
-        
     </div>
 </body>
 </html>
@@ -54,15 +54,9 @@
         data() {
             return {
                 // 변수 - (key : value)
-                list : [],
-                info : {
-                    stuNo : "",
-                    stuName : "",
-                    stuDept : "",
-                    stuGrade : ""
-                }
+                list : []
             };
-        },
+        }, 
         methods: {
             // 함수(메소드) - (key : function())
             fnList: function () {
@@ -72,16 +66,17 @@
                 fetch("http://localhost:3000/student")
                     .then(res => res.json())
                     .then(data => {
+                        console.log(data)
                         self.list = data.list;
-                        // for문
                         /* for(let i=0; i<self.list.length; i++){
-                            self.list[i].viewUrl = "stu-view.html2?stuNo="+self.list[i].STU_NO;
+                            self.list[i].viewUrl 
+                                = "stu-view.html?stuNo="+self.list[i].STU_NO;
                             console.log(self.list);
-                        } */
-                        // forEach문
+                        }  */
+
                         self.list.forEach(item => {
                             item.viewUrl = "stu-view.html?stuNo="+item.STU_NO;
-                        })
+                        });
                     })
             },
             fnRemove : function(stuNo){
@@ -91,15 +86,12 @@
                 })
                     .then(res => res.json())
                     .then(data => {
-                        alert("삭제 됨!")
+                        alert("삭제 됨!");
                         self.fnList();
                     })
             },
             fnEdit : function(stuNo){
                 location.href="stu-edit.html?stuNo="+stuNo;
-            },
-            fnView : function(stuNo){
-                location.href="stu-view.html?stuNo="+stuNo;
             }
         }, // methods
         mounted() {

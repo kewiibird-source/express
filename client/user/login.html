@@ -26,10 +26,10 @@
         <!-- html 코드는 id가 app인 태그 안에서 작업 -->
         <div>
             <div>
-                id : <input type="text">
+                id : <input type="text" v-model="userId">
             </div>
             <div>
-                pw : <input type="password">
+                pw : <input type="password" v-model="pwd">
             </div>
             <button @click="fnLogin">로그인</button>
         </div>
@@ -42,15 +42,34 @@
         data() {
             return {
                 // 변수 - (key : value)
+                userId : "",
+                pwd : ""
             };
         },
         methods: {
             // 함수(메소드) - (key : function())
             fnLogin: function () {
                 let self = this;
-                fetch("http://localhost:3000/user"+userId)
+                fetch("http://localhost:3000/user/login",{
+                    method : "POST",
+                    headers : {
+                        "Content-type" : "application/json"
+                    },
+                    body : JSON.stringify({
+                        userId : self.userId,
+                        pwd : self.pwd
+                    })
+                })
                     .then(res => res.json())
-                    .then(data => {})
+                    .then(data => {
+                        console.log(data);
+                        if(data.message == "success"){
+                            alert(data.info.userName + "님 환영합니다.");
+                            location.href="../student/stu-list.html"; // 로그인 성공시 리스트로
+                        } else {
+                            alert("아이디/비밀번호 확인하셈");
+                        }
+                    })
             }
         }, // methods
         mounted() {
