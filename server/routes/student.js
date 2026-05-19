@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
 });
 
 // 학생상세보기
-router.get('//:stuNo', async (req, res) => {
+router.get('/:stuNo', async (req, res) => {
   const { stuNo } = req.params;
   try {
     let connection = await db.getConnection();
@@ -57,7 +57,7 @@ router.get('//:stuNo', async (req, res) => {
 });
 
 // 학생삭제
-router.delete('//:stuNo', async (req, res) => {
+router.delete('/:stuNo', async (req, res) => {
   console.log("DELETE 호출!")
   console.log(req.params)
   const { stuNo } = req.params;
@@ -80,7 +80,7 @@ router.delete('//:stuNo', async (req, res) => {
 });
 
 // 학생수정
-router.put('//:stuNo', async (req, res) => {
+router.put('/:stuNo', async (req, res) => {
   const { stuNo } = req.params;
   const { stuName, stuDept, stuGrade } = req.body;
 
