@@ -132,3 +132,27 @@ router.put('/:boardNo', async (req, res) => {
     res.status(500).send('Error executing query');
   }
 });
+
+// 게시글등록
+router.post('/', async (req, res) => {
+  const { title, contents, userId } = req.body;
+
+  try {
+    let connection = await db.getConnection();
+    const result = await connection.execute(
+      `
+        INSERT INTO TBL_BOARD 
+        VALUES(BOARD_SEQ.NEXTVAL, :userId, :title, :contents, 0, '1', SYSDATE, SYSDATE)
+      `,
+      [ userId, title, contents ],
+      {autoCommit : true}
+    );
+
+    res.json({
+        result : "success",
+    });
+  } catch (error) {
+    console.error('Error executing query', error);
+    res.status(500).send('Error executing query');
+  }
+});

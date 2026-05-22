@@ -8,12 +8,15 @@ module.exports = router;
 // 학생리스트
 // 슬래시만 있어도 -> /student 주소가 디폴트
 router.get('/', async (req, res) => {
-  const { } = req.query;
+  // 보낸값 받는곳
+  const { keyword } = req.query;
+  let connection;
   try {
-    let connection = await db.getConnection();
+    connection = await db.getConnection();
     const result = await connection.execute(
-      `SELECT * FROM STUDENT`,
-      [],
+      `SELECT * FROM STUDENT
+      WHERE STU_NAME LIKE '%' || :keyword || '%'`,
+      [keyword || ""],
       // result 안에 rows는 키 안에 json형태로 db데이터를 반환
       {outFormat: oracledb.OUT_FORMAT_OBJECT}
     );
@@ -25,8 +28,11 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
+  } finally {
+    await connection.close();
   }
 });
+
 
 // 학생상세보기
 router.get('/:stuNo', async (req, res) => {
@@ -53,6 +59,8 @@ router.get('/:stuNo', async (req, res) => {
   } catch (error) {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
+  } finally {
+    await connection.close();
   }
 });
 
@@ -76,6 +84,8 @@ router.delete('/:stuNo', async (req, res) => {
   } catch (error) {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
+  } finally {
+    await connection.close();
   }
 });
 
@@ -104,6 +114,8 @@ router.put('/:stuNo', async (req, res) => {
   } catch (error) {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
+  } finally {
+    await connection.close();
   }
 });
 
@@ -127,5 +139,7 @@ router.post('/', async (req, res) => {
   } catch (error) {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
+  } finally {
+    await connection.close();
   }
 });
