@@ -26,24 +26,19 @@ router.post('/login', async (req, res) => {
     let info = {} 
 
     if(result.rows.length > 0){
-      let match = await bcrypt.compare(pwd, result.rows[0].PWD)
+      let match = await bcrypt.compare(pwd, result.rows[0].PWD);
       if(match){
-        message = "success";
-        info = {
-          userId : result.rows[0].USERID,
-          userName : result.rows[0].USERNAME
-        }
+          message = "success";
+          info = {
+            userId : result.rows[0].USERID,
+            userName : result.rows[0].USERNAME,
+          }
       } else {
-
-      }
-
-      message = "success";
-      info = {
-        userId : result.rows[0].USERID,
-        userName : result.rows[0].USERNAME
+        // 비밀번호 틀림
+        message = "fail";
       }
     } else {
-      // 로그인실패 - 아이디도 맞는거 없음
+      // 로그인 실패 - 아이디도 맞는거 없음
       message = "fail";
     }
     
