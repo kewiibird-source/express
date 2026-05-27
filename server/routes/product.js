@@ -33,21 +33,16 @@ router.get('/', async (req, res) => {
 // 제품상세보기
 router.get('/:productId', async (req, res) => {
   const { productId } = req.params;
+  let connection;
   try {
-    let connection = await db.getConnection();
+    connection = await db.getConnection();
     const result = await connection.execute(
-      `
-        SELECT 
-          STU_NO AS "stuNo",  
-          STU_NAME AS "stuName",
-          STU_DEPT AS "stuDept",
-          STU_GRADE AS "stuGrade"
-        FROM STUDENT WHERE STU_NO = :stuNo
-      `,
-      [stuNo],
+      `SELECT * FROM PRODUCT WHERE PRODUCT_ID = :productId`,
+      [productId],
+      // result 안에 rows는 키 안에 json형태로 db데이터를 반환
       {outFormat: oracledb.OUT_FORMAT_OBJECT}
     );
-    console.log(result)
+    
     res.json({
         result : "success",
         info : result.rows[0]
@@ -56,6 +51,36 @@ router.get('/:productId', async (req, res) => {
     console.error('Error executing query', error);
     res.status(500).send('Error executing query');
   } finally {
-    await connection.close();
+    connection.close();
+  }
+});
+
+// 제품추가
+router.post('/', async (req, res) => {
+  const { id, name, brand, price, desc } = req.body;
+  let pId = id;
+  let desciption = desc;
+  console.log(req.body);
+  let connection;
+  try {
+    connection = await db.getConnection();
+    const result = await connection.execute(
+      `
+        INSERT INTO PRODUCT(PRODUCT_ID, PRODUCT_NAME, BRAND, PRICE, DESCRIPTION) 
+        VALUES(:pId, :name, :brand, :price, :desciption)
+      `,
+      [ pId, name, brand, price, desciption ],
+      // result 안에 rows는 키 안에 json형태로 db데이터를 반환
+      {autoCommit : true}
+    );
+    
+    res.json({
+        result : "success"
+    });
+  } catch (error) {
+    console.error('Error executing query', error);
+    res.status(500).send('Error executing query');
+  } finally {
+    connection.close();
   }
 });
